@@ -1,0 +1,18 @@
+{
+  "scale": "noise0p5",
+  "criterion": "both_dets==1 (n_trig_UD>=1 AND n_trig_LD>=1)",
+  "n_real": 44303,
+  "n_sim": 77856,
+  "top10_feature_importance_gain": {
+    "trig_t_span": 0.18010562658309937,
+    "E_UD": 0.1240401491522789,
+    "E_UD_max": 0.102432481944561,
+    "n_trig_UD": 0.0974603220820427,
+    "det_last": 0.09501384943723679,
+    "pix_spread_rms": 0.08566401153802872,
+    "pix_spread_max": 0.06661821901798248,
+    "dt_firstUD_firstLD": 0.06197081133723259,
+    "det_mismatch": 0.05834643915295601,
+    "n_trig": 0.024898184463381767
+  }
+}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Trigger-level sim-to-real — interactive starter</title>
+  <!-- Vega ecosystem from CDN only (no build step, no npm). -->
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; max-width: 1100px; }
+    .chart { margin: 1rem 0 2rem 0; }
+    table { border-collapse: collapse; margin-top: 1rem; }
+    td, th { border: 1px solid #ccc; padding: 0.35rem 0.7rem; text-align: left; }
+    th { background: #f2f2f2; }
+    code { background: #f4f4f4; padding: 0 0.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Trigger-level sim-to-real — interactive starter</h1>
+  <p>
+    Overlaid real-vs-sim histograms (coincidence-selected, <code>both_dets == 1</code>).
+    Data: <code>../data/distributions/n_trig.json</code> and <code>trig_t_span.json</code>.
+    The y-axis is the <em>fraction of events</em> per bin so the two domains are
+    comparable despite different sample sizes (see <code>n_events</code> in each JSON).
+  </p>
+
+  <label for="scale">Noise scale: </label>
+  <select id="scale">
+    <option value="noise0p0">noise0p0 (clean)</option>
+    <option value="noise0p5" selected>noise0p5 (best mean-KS)</option>
+    <option value="noise1p0">noise1p0</option>
+    <option value="noise2p0">noise2p0</option>
+  </select>
+
+  <!-- One chart per feature; Vega-Lite is embedded into each div. -->
+  <div class="chart" id="chart-n_trig"></div>
+  <div class="chart" id="chart-trig_t_span"></div>
+
+  <h2>Headline numbers</h2>
+  <p>Read from <code>../data/key_numbers.json</code>.</p>
+  <table id="keytable">
+    <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+    <tbody id="keybody"></tbody>
+  </table>
+
+  <script>
+    // ---- configuration -------------------------------------------------
+    // Features to plot. Add more by pushing entries here (and a <div> in body).
+    const FEATURES = [
+      { name: "n_trig",      el: "chart-n_trig" },
+      { name: "trig_t_span", el: "chart-trig_t_span" },
+    ];
+    const SCALES = ["noise0p0", "noise0p5", "noise1p0", "noise2p0"];
+    const SERIES_KEYS = SCALES.map((s) => "sim_" + s);
+
+    // ---- small helpers --------------------------------------------------
+    async function loadJSON(path) {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error(`HTTP ${res.status} loading ${path}`);
+      return res.json();
+    }
+
+    // Reshape {bins, series, n_events} into tidy rows for Vega-Lite.
+    // "share" = count / n_events so real vs sim overlays are comparable.
+    function buildRows(doc, scale) {
+      const bins = doc.bins;
+      const n = doc.n_events;
+      const rows = [];
+      const pairs = [
+        ["real", "real"],
+        ["sim_" + scale, "sim " + scale],
+      ];
+      for (const [key, label] of pairs) {
+        const counts = doc.series[key];
+        const ntot = key === "real" ? n.real : n[scale];
+        for (let i = 0; i < counts.length; i++) {
+          rows.push({
+            bin_start: bins[i],
+            bin_end: bins[i + 1],
+            count: counts[i],
+            share: counts[i] / ntot,
+            series: label,
+          });
+        }
+      }
+      return rows;
+    }
+
+    function buildSpec(doc, scale) {
+      return {
+        $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+        width: "container",
+        height: 260,
+        title: { text: doc.feature + "  (" + doc.units + ")" },
+        data: { values: buildRows(doc, scale) },
+        mark: { type: "bar", opacity: 0.65 },
+        encoding: {
+          x: { field: "bin_start", type: "quantitative", title: doc.feature },
+          x2: { field: "bin_end" },
+          y: { field: "share", type: "quantitative", title: "fraction of events" },
+          color: {
+            field: "series", type: "nominal",
+            scale: { domain: ["real", "sim " + scale], range: ["#1f77b4", "#ff7f0e"] },
+            title: "domain",
+          },
+          tooltip: [
+            { field: "bin_start", type: "quantitative", format: ".3g" },
+            { field: "bin_end",   type: "quantitative", format: ".3g" },
+            { field: "count",     type: "quantitative", title: "raw count" },
+            { field: "series",    type: "nominal" },
+          ],
+        },
+      };
+    }
+
+    async function render() {
+      const scale = document.getElementById("scale").value;
+      for (const f of FEATURES) {
+        await vegaEmbed("#" + f.el, buildSpec(dists[f.name], scale), { actions: false });
+      }
+    }
+
+    // ---- headline numbers table ----------------------------------------
+    function renderKeyTable(k) {
+      const rows = [
+        ["Extraction — triggers", k.extraction.triggers],
+        ["Extraction — coincidence events", k.extraction.coincidence_events],
+        ["Calibration", k.detector_response.adc_to_kev_scale.toFixed(4) + " keV/ADC (offset " + k.detector_response.adc_to_kev_offset + ")"],
+        ["Channels", k.detector_response.channels_ok + " OK / " + k.detector_response.channels_dead + " dead"],
+        ["Record window", k.detector_response.record_window_us + " µs"],
+        ["M4 noise0p0 random acc / macro-recall", k.m4.noise0p0.random.accuracy.toFixed(4) + " / " + k.m4.noise0p0.random.macro_recall.toFixed(4)],
+        ["M4 noise1p0 random acc / macro-recall", k.m4.noise1p0.random.accuracy.toFixed(4) + " / " + k.m4.noise1p0.random.macro_recall.toFixed(4)],
+        ["Best mean KS (noise0p5)", k.m5.mean_ks.noise0p5.toFixed(4)],
+        ["Discriminator AUC (noise0p5)", k.m5.discriminator_auc.noise0p5.toFixed(4)],
+        ["Real predicted: CLEAN / SAME / CROSS",
+          (k.m5.real_predicted_class_fraction.CLEAN * 100).toFixed(1) + "% / " +
+          (k.m5.real_predicted_class_fraction.BS_SAME_DET * 100).toFixed(1) + "% / " +
+          (k.m5.real_predicted_class_fraction.BS_CROSS_DET * 100).toFixed(1) + "%"],
+      ];
+      const body = document.getElementById("keybody");
+      for (const [label, val] of rows) {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td"); td1.textContent = label;
+        const td2 = document.createElement("td"); td2.textContent = String(val);
+        tr.appendChild(td1); tr.appendChild(td2); body.appendChild(tr);
+      }
+    }
+
+    // ---- boot -----------------------------------------------------------
+    let dists = {};
+    async function init() {
+      // Serve this folder over http (python -m http.server) so fetch() works.
+      for (const f of FEATURES) {
+        dists[f.name] = await loadJSON("../data/distributions/" + f.name + ".json");
+      }
+      const kn = await loadJSON("../data/key_numbers.json");
+      renderKeyTable(kn);
+      await render();
+    }
+
+    document.getElementById("scale").addEventListener("change", render);
+    init().catch((err) => {
+      document.body.insertAdjacentHTML(
+        "afterbegin",
+        '<p style="color:#a00">Failed to load data: ' + err.message +
+        ' — serve this folder with <code>python -m http.server</code> and open ' +
+        '<code>http://localhost:8000/demo/index.html</code>.</p>'
+      );
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+{
+  "_meta": {
+    "title": "Trigger-level, noise-injected sim-to-real experiment \u2014 consolidated key numbers",
+    "source_report": "REPORT_trigger_level_sim_to_real.md",
+    "note": "M4/M5 values read programmatically from data/metrics/*.json and ks_wass_coincidence.csv; extraction/livetime/window values from the report where no local JSON carried them."
+  },
+  "extraction": {
+    "run": 8908,
+    "triggers": 115782,
+    "coincidence_events": 45695,
+    "source": "report M1"
+  },
+  "detector_response": {
+    "adc_to_kev_scale": 0.3333333333333333,
+    "adc_to_kev_offset": 0.0,
+    "calibration_anchor": "90 ADC == 30 keV (offset 0)",
+    "channels_ok": 183,
+    "channels_dead": 25,
+    "tick_ns": 4.0,
+    "trig_window_us": 1.0,
+    "livetime_us": 85506413.4,
+    "livetime_s": 85.5064134,
+    "record_window_us": 56.0,
+    "source": "detector_response_run8908.json + report"
+  },
+  "class_population": {
+    "total": 51197,
+    "CLEAN": 44145,
+    "BS_CROSS_DET": 5009,
+    "BS_SAME_DET": 2043,
+    "note": "from noise1p0_metrics.json per_class_counts (matches report 51,197)"
+  },
+  "m4": {
+    "noise0p0": {
+      "random": {
+        "n_test": 10239,
+        "accuracy": 0.9592733665397012,
+        "macro_recall": 0.8102775032942392,
+        "auc_macro": 0.9522926045438576,
+        "auc_per_class": {
+          "BS_CROSS_DET": 0.9842086963887532,
+          "BS_SAME_DET": 0.9130428780714694,
+          "CLEAN": 0.9596262391713498
+        },
+        "per_class_recall": {
+          "BS_CROSS_DET": 0.8952095808383234,
+          "BS_SAME_DET": 0.5501222493887531,
+          "CLEAN": 0.9855006796556411
+        }
+      },
+      "jobholdout": {
+        "n_test": 8535,
+        "accuracy": 0.9636789689513767,
+        "macro_recall": 0.819442378584843,
+        "auc_macro": 0.9544922554417808,
+        "auc_per_class": {
+          "BS_CROSS_DET": 0.9858403239667308,
+          "BS_SAME_DET": 0.9167336918864636,
+          "CLEAN": 0.9609027504721482
+        },
+        "per_class_recall": {
+          "BS_CROSS_DET": 0.9033816425120773,
+          "BS_SAME_DET": 0.567398119122257,
+          "CLEAN": 0.9875473741201949
+        }
+      }
+    },
+    "noise1p0": {
+      "random": {
+        "n_test": 10240,
+        "accuracy": 0.94912109375,
+        "macro_recall": 0.7188677066714074,
+        "auc_macro": 0.9430825846950551,
+        "auc_per_class": {
+          "BS_CROSS_DET": 0.9795018104081942,
+          "BS_SAME_DET": 0.9023840309544258,
+          "CLEAN": 0.9473619127225457
+        },
+        "per_class_recall": {
+          "BS_CROSS_DET": 0.8542914171656687,
+          "BS_SAME_DET": 0.31295843520782396,
+          "CLEAN": 0.9893532676407294
+        }
+      },
+      "jobholdout": {
+        "n_test": 8537,
+        "accuracy": 0.9496310179219867,
+        "macro_recall": 0.7129113711490284,
+        "auc_macro": 0.9455681420495056,
+        "auc_per_class": {
+          "BS_CROSS_DET": 0.9825752763806486,
+          "BS_SAME_DET": 0.9025176785266077,
+          "CLEAN": 0.9516114712412602
+        },
+        "per_class_recall": {
+          "BS_CROSS_DET": 0.8657799274486094,
+          "BS_SAME_DET": 0.2852664576802508,
+          "CLEAN": 0.9876877283182248
+        }
+      }
+    },
+    "cross_noise": [
+      {
+        "train": "noise0p0",
+        "test": "noise1p0",
+        "n_test": 10238,
+        "accuracy": 0.7430162141043173,
+        "macro_recall": 0.7114174021732383,
+        "auc_macro": 0.8694540929582474,
+        "per_class_recall": {
+          "BS_CROSS_DET": 0.8672654690618763,
+          "BS_SAME_DET": 0.5281173594132029,
+          "CLEAN": 0.7388693780446358
+        }
+      },
+      {
+        "train": "noise1p0",
+        "test": "noise0p0",
+        "n_test": 10238,
+        "accuracy": 0.9610275444422739,
+        "macro_recall": 0.7880420856674636,
+        "auc_macro": 0.9567143887085271,
+        "per_class_recall": {
+          "BS_CROSS_DET": 0.8992015968063872,
+          "BS_SAME_DET": 0.4743276283618582,
+          "CLEAN": 0.9905970318341453
+        }
+      },
+      {
+        "train": "noise1p0",
+        "test": "noise0p5",
+        "n_test": 10233,
+        "accuracy": 0.9536792729404867,
+        "macro_recall": 0.7435955894940207,
+        "auc_macro": 0.9516980432628056,
+        "per_class_recall": {
+          "BS_CROSS_DET": 0.8741258741258742,
+          "BS_SAME_DET": 0.36674816625916873,
+          "CLEAN": 0.9899127280970191
+        }
+      },
+      {
+        "train": "noise1p0",
+        "test": "noise2p0",
+        "n_test": 10238,
+        "accuracy": 0.9290877124438367,
+        "macro_recall": 0.6544096673894296,
+        "auc_macro": 0.9124745007818627,
+        "per_class_recall": {
+          "BS_CROSS_DET": 0.8043912175648703,
+          "BS_SAME_DET": 0.18092909535452323,
+          "CLEAN": 0.9779086892488954
+        }
+      }
+    ]
+  },
+  "m5": {
+    "coincidence_fractions": {
+      "criterion": "both_dets==1 (n_trig_UD>=1 AND n_trig_LD>=1)",
+      "real": 0.9695371484845169,
+      "noise0p0": 0.25424002241533755,
+      "noise0p5": 0.33058468854825696,
+      "noise1p0": 0.39505192632660513,
+      "noise2p0": 0.498953375311546
+    },
+    "coincidence_counts": {
+      "real": 44303,
+      "noise0p0": 59887,
+      "noise0p5": 77856,
+      "noise1p0": 93045,
+      "noise2p0": 117513
+    },
+    "mean_ks": {
+      "noise0p0": 0.1972496991277569,
+      "noise0p5": 0.18115789357964585,
+      "noise1p0": 0.25469108328819196,
+      "noise2p0": 0.3559912512232101
+    },
+    "best_scale_by_ks": "noise0p5",
+    "discriminator_auc": {
+      "noise0p0": 0.9900611931740493,
+      "noise0p5": 0.9917822773464475,
+      "noise1p0": 0.9938885255750829,
+      "noise2p0": 0.9970663950114597
+    },
+    "discriminator_auc_std": {
+      "noise0p0": 0.0011586039868877965,
+      "noise0p5": 0.0002600669975751844,
+      "noise1p0": 0.000367414204283525,
+      "noise2p0": 8.819299961311968e-05
+    },
+    "top5_ks_features_best_scale": {
+      "E_UD": 0.4781595397257753,
+      "E_UD_max": 0.4746402220110198,
+      "trig_t_span": 0.4037195502074377,
+      "dt_firstUD_firstLD": 0.3757001597279705,
+      "pix_spread_rms": 0.3631601761879685
+    },
+    "discriminator_top10_importance_gain": {
+      "trig_t_span": 0.18010562658309937,
+      "E_UD": 0.1240401491522789,
+      "E_UD_max": 0.102432481944561,
+      "n_trig_UD": 0.0974603220820427,
+      "det_last": 0.09501384943723679,
+      "pix_spread_rms": 0.08566401153802872,
+      "pix_spread_max": 0.06661821901798248,
+      "dt_firstUD_firstLD": 0.06197081133723259,
+      "det_mismatch": 0.05834643915295601,
+      "n_trig": 0.024898184463381767
+    },
+    "real_predicted_class_distribution": {
+      "CLEAN": 44290,
+      "BS_SAME_DET": 740,
+      "BS_CROSS_DET": 665
+    },
+    "real_predicted_class_fraction": {
+      "CLEAN": 0.9692526534631798,
+      "BS_SAME_DET": 0.016194331983805668,
+      "BS_CROSS_DET": 0.014553014553014554
+    },
+    "physics_sanity": {
+      "real_E_LD_max_median_keV": 257.0,
+      "real_E_LD_max_keV": 2722.0,
+      "frac_gt_beta_endpoint_782keV": 0.03251996936207462
+    }
+  }
+}

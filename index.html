@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f3ec">
+  <meta name="description" content="An interactive paper on trigger-level, noise-injected sim-to-real validation for a three-class electron backscatter classifier in the Nab experiment.">
+  <title>Trigger-Level Sim-to-Real Validation — Nab Interactive Paper</title>
+  <link rel="stylesheet" href="paper.css">
+  <script src="https://cdn.jsdelivr.net/npm/vega@5" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6" defer></script>
+  <script src="paper.js" defer></script>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div>
+
+  <main class="page">
+    <header class="masthead">
+      <div class="kicker">
+        <span>Nab Experiment · Interactive Research Paper</span>
+      </div>
+      <h1>Trigger-Level, Noise-Injected Sim-to-Real Validation of a 3-Class Backscatter Classifier</h1>
+      <p class="subtitle">Can Monte Carlo simulation stand in for real detector output when training a model to identify electron backscatter?</p>
+      <div class="byline-row">
+        <span><strong>Nab experiment</strong> · CLEAN / BS_SAME_DET / BS_CROSS_DET</span>
+        <span>Reproducible analysis · 22 unified features</span>
+      </div>
+    </header>
+
+    <section class="metric-strip" aria-label="Study at a glance">
+      <div class="metric">
+        <span class="metric-value">115,782</span>
+        <span class="metric-label">real DAQ triggers extracted</span>
+      </div>
+      <div class="metric">
+        <span class="metric-value">45,695</span>
+        <span class="metric-label">real coincidence events</span>
+      </div>
+      <div class="metric">
+        <span class="metric-value">0.959</span>
+        <span class="metric-label">clean-simulation accuracy</span>
+      </div>
+      <div class="metric">
+        <span class="metric-value">0.181</span>
+        <span class="metric-label">best mean KS · noise ×0.5</span>
+      </div>
+      <div class="metric">
+        <span class="metric-value">≈0.99</span>
+        <span class="metric-label">sim-vs-real discriminator AUC</span>
+      </div>
+    </section>
+
+    <nav class="control-deck" aria-label="Paper navigation and interactive controls">
+      <div class="nav-links">
+        <a href="#introduction">Introduction</a>
+        <a href="#methods">Methods</a>
+        <a href="#results">Results</a>
+        <a href="#discussion">Discussion</a>
+      </div>
+      <div class="control-spacer"></div>
+      <div class="scale-control">
+        <span class="label">Noise scale</span>
+        <div class="segmented" role="group" aria-label="Simulation noise scale">
+          <button type="button" data-scale="noise0p0" aria-pressed="false">×0.0</button>
+          <button type="button" data-scale="noise0p5" class="on" aria-pressed="true">×0.5</button>
+          <button type="button" data-scale="noise1p0" aria-pressed="false">×1.0</button>
+          <button type="button" data-scale="noise2p0" aria-pressed="false">×2.0</button>
+        </div>
+      </div>
+      <div class="live-readout" id="live-readout">mean KS 0.1812 · AUC 0.9918</div>
+    </nav>
+
+    <article class="article">
+      <div class="lead-grid reveal">
+        <section class="abstract" aria-labelledby="abstract-title">
+          <h2 id="abstract-title">Abstract</h2>
+          <p>We evaluate whether a Monte Carlo simulation of the Nab spectrometer can stand in for real DAQ output when training a machine-learning classifier for electron backscatter events. Simulated hits and real DAQ triggers are converted to one trigger-record representation; measured noise is injected at four scales; and a 22-feature, three-class XGBoost model is retrained. The trigger-level classifier reaches <strong>0.96 accuracy</strong> on clean simulation. Yet the two domains remain structurally different: a discriminator separates real and simulated events with <strong>AUC ≈ 0.99</strong> at every noise scale. The dominant gaps are upstream energy response, timing structure, and spatial spread.</p>
+        </section>
+        <aside class="takeaway" aria-label="Principal finding">
+          <span class="label">Principal finding</span>
+          <p>Adding measured noise makes simulated trigger multiplicity more realistic, but it does not close the underlying detector-response gap.</p>
+          <span class="takeaway-number">0.1812</span>
+          <small>best mean KS · noise ×0.5</small>
+        </aside>
+      </div>
+
+      <section class="paper-section" id="introduction">
+        <header class="section-head">
+          <span class="section-num">01</span>
+          <h2>Introduction</h2>
+          <span class="folio">Question</span>
+        </header>
+
+        <div class="prose reveal">
+          <p class="dropcap">Nab measures neutron beta decay with a magnetic spectrometer. A decaying neutron produces an electron and a proton that travel in opposite directions toward two segmented silicon detectors: the upstream detector (UD, proton side) and the downstream detector (LD, electron side). The physics goal—including the electron–proton correlation coefficient <em>a</em>—depends on measuring the electron energy spectrum precisely.</p>
+          <p>A persistent nuisance is <strong>electron backscatter</strong>. An electron can strike a detector, deposit only part of its energy, and bounce back out. Cross-detector backscatter leaves an obvious signature because both detectors fire. Same-detector backscatter is stealthier: the electron returns to the same detector, so its partial deposition can quietly distort the energy spectrum with a low-energy tail.</p>
+          <p>A truth-derived classifier already separated these event classes well. The open question was harder and more practical: can a classifier use only trigger records that the DAQ actually produces, learn from simulation, and remain meaningful on real unlabeled data?</p>
+        </div>
+
+        <figure class="spectrometer-figure reveal">
+          <div class="spectrometer-shell">
+            <svg viewBox="0 0 880 360" role="img" aria-labelledby="spectrometer-title spectrometer-desc">
+              <title id="spectrometer-title">Simplified Nab spectrometer event topology</title>
+              <desc id="spectrometer-desc">A neutron decays at the center. The proton travels toward the upstream detector while the electron travels toward the downstream detector and may backscatter.</desc>
+              <defs>
+                <marker id="arrow-accent" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#c04a2f"></path></marker>
+                <marker id="arrow-ink" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#17150f"></path></marker>
+              </defs>
+              <path class="field-line" d="M210 63 C315 120,315 240,210 297"></path>
+              <path class="field-line" d="M270 63 C355 126,355 234,270 297"></path>
+              <path class="field-line" d="M610 63 C525 126,525 234,610 297"></path>
+              <path class="field-line" d="M670 63 C565 120,565 240,670 297"></path>
+              <ellipse class="detector-disc" cx="440" cy="58" rx="230" ry="31"></ellipse>
+              <ellipse class="detector-disc" cx="440" cy="302" rx="230" ry="31"></ellipse>
+              <path class="detector-segment" d="M325 31 L325 85 M382 27 L382 89 M440 27 L440 89 M498 27 L498 89 M555 31 L555 85"></path>
+              <path class="detector-segment" d="M325 275 L325 329 M382 271 L382 333 M440 271 L440 333 M498 271 L498 333 M555 275 L555 329"></path>
+              <circle cx="440" cy="180" r="13" fill="#f6f3ec" stroke="#17150f" stroke-width="2"></circle>
+              <circle class="pulse dark" cx="440" cy="180" r="4"></circle>
+              <path class="path-proton" d="M433 169 C410 137,395 103,382 74" marker-end="url(#arrow-ink)"></path>
+              <path class="path-electron" d="M448 191 C480 224,510 258,526 286" marker-end="url(#arrow-accent)"></path>
+              <path class="path-backscatter" d="M526 285 C562 250,565 216,539 196" marker-end="url(#arrow-accent)"></path>
+              <circle class="pulse dark" cx="382" cy="72" r="5"></circle>
+              <circle class="pulse" cx="526" cy="286" r="6"></circle>
+              <text class="diagram-label" x="690" y="63">UD · proton side</text>
+              <text class="diagram-label" x="690" y="307">LD · electron side</text>
+              <text class="diagram-label" x="456" y="178">neutron decay</text>
+              <text class="diagram-note" x="298" y="137">proton</text>
+              <text class="diagram-note" x="522" y="239">electron</text>
+              <text class="diagram-note" x="574" y="208">possible backscatter</text>
+            </svg>
+          </div>
+          <figcaption class="figure-caption">
+            <span class="figure-label">Fig. 01</span>
+            <span>Conceptual event topology. Cross-detector backscatter creates a two-detector signature; same-detector backscatter leaves only subtle timing and energy structure within one detector.</span>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="paper-section" id="methods">
+        <header class="section-head">
+          <span class="section-num">02</span>
+          <h2>Data &amp; Methods</h2>
+          <span class="folio">Pipeline</span>
+        </header>
+
+        <div class="prose reveal">
+          <h3><span class="subnum">2.1</span> Real data</h3>
+          <p>Real triggers come from DAQ Run 8908, extracted directly from the trigger stream: <strong>115,782 triggers</strong> organized into <strong>45,695 coincidence events</strong>. Each event carries timestamp, pixel, and energy in ADC, mapped to detector side and position. Leakage-prone fields such as event type and waveform metadata are excluded from the feature set.</p>
+
+          <h3><span class="subnum">2.2</span> Detector response</h3>
+          <p>The measured response anchors the trigger emulator: 0.3333 keV/ADC, 183 healthy and 25 dead channels, and a fixed 56 µs DAQ record window. Per-channel noise RMS and fake-trigger rates supply the measured background model.</p>
+        </div>
+
+        <div class="method-grid reveal">
+          <article class="method-card"><span class="eyebrow">Step 1 · Extraction</span><h3>One trigger contract</h3><p>Real DAQ records are normalized into event-level trigger lists without training labels or waveform-derived shortcuts.</p></article>
+          <article class="method-card"><span class="eyebrow">Step 2 · Response</span><h3>Measured detector behavior</h3><p>Calibration, occupancy, baseline noise, and fake rates are measured from the real data and used downstream.</p></article>
+          <article class="method-card"><span class="eyebrow">Step 3 · Emulation</span><h3>Hits become triggers</h3><p>Geant4 hits pass through dead-channel masking, energy smearing, thresholds, and Poisson fake-trigger injection.</p></article>
+          <article class="method-card"><span class="eyebrow">Step 4 · Validation</span><h3>Train, then challenge</h3><p>XGBoost is evaluated on random and job-held-out events; simulation is then compared directly with real data.</p></article>
+        </div>
+
+        <div class="figure-grid reveal">
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/detector_response/pulser_calibration.png" alt="Pulser calibration line" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 02</span><span>Pulser calibration establishes the 0.3333 keV/ADC conversion and the 90 ADC = 30 keV anchor.</span></figcaption>
+          </figure>
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/detector_response/beta_endpoint_spectrum.png" alt="Coincidence beta spectrum with endpoint" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 03</span><span>The coincidence electron spectrum provides an absolute-scale cross-check at the 782 keV beta endpoint.</span></figcaption>
+          </figure>
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/detector_response/channel_occupancy.png" alt="Detector channel occupancy" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 04</span><span>Channel occupancy identifies 183 usable and 25 dead channels across the segmented detectors.</span></figcaption>
+          </figure>
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/detector_response/noise_rms_per_channel.png" alt="Noise RMS by detector channel" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 05</span><span>Per-channel baseline RMS captures nonuniform detector noise instead of assuming one global width.</span></figcaption>
+          </figure>
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/detector_response/fake_rate_per_channel.png" alt="Fake trigger rate by detector channel" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 06</span><span>Measured fake-trigger rates drive independent Poisson noise injection at four global scales.</span></figcaption>
+          </figure>
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/detector_response/singles_adc_spectrum.png" alt="Single trigger ADC spectrum" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 07</span><span>The single-trigger spectrum characterizes thresholds and the amplitude distribution used for noise triggers.</span></figcaption>
+          </figure>
+        </div>
+
+        <div class="prose reveal">
+          <h3><span class="subnum">2.3</span> Trigger emulator and noise scales</h3>
+          <p>Simulated Geant4 hits are transformed into the same trigger-record schema as real data. A dead-channel mask, energy smearing, and threshold crossings reproduce physics triggers. Noise-induced pixel triggers are drawn from per-channel Poisson rates and measured amplitude spectra at four scales: <strong>×0.0, ×0.5, ×1.0, and ×2.0</strong>.</p>
+
+          <h3><span class="subnum">2.4</span> Unified features</h3>
+          <p>Exactly one feature function operates on both domains, producing 22 trigger-level quantities with the same contract and no missing values.</p>
+        </div>
+
+        <div class="feature-contract reveal">
+          <div class="feature-contract-head"><h3>Shared feature contract</h3><span class="feature-count">22 features · 0 NaNs</span></div>
+          <div class="feature-list" aria-label="Trigger-level model features">
+            <code>n_trig</code><code>n_trig_UD</code><code>n_trig_LD</code><code>trig_E_tot</code><code>trig_E_max</code><code>trig_E_mean</code><code>trig_t_span</code><code>E_UD</code><code>E_LD</code><code>frac_E_UD</code><code>E_UD_max</code><code>E_LD_max</code><code>det_first</code><code>det_last</code><code>det_mismatch</code><code>both_dets</code><code>dt_firstUD_firstLD</code><code>n_unique_pix</code><code>pix_spread_max</code><code>pix_spread_rms</code><code>Ew_mean_t</code><code>earliest_E</code>
+          </div>
+        </div>
+
+        <div class="prose reveal">
+          <h3><span class="subnum">2.5</span> Classifier and evaluation</h3>
+          <p>The model is a three-class XGBoost classifier with 400 trees, maximum depth 6, and learning rate 0.05. The labeled population contains 51,197 events: 44,145 CLEAN, 5,009 BS_CROSS_DET, and 2,043 BS_SAME_DET. We report both an 80/20 random split and a simulation-job holdout, keeping entire jobs out of training.</p>
+        </div>
+      </section>
+
+      <section class="paper-section" id="results">
+        <header class="section-head">
+          <span class="section-num">03</span>
+          <h2>Results</h2>
+          <span class="folio">Evidence</span>
+        </header>
+
+        <div class="prose reveal">
+          <h3><span class="subnum">3.1</span> Trigger-level retraining</h3>
+          <p>The clean trigger-level model reaches 0.959 accuracy and 0.810 macro-recall. Moving away from truth-derived hit features costs about three points of accuracy and eight to nine points of macro-recall, concentrated in the rare and weakly observed BS_SAME_DET class.</p>
+        </div>
+
+        <div class="table-wrap reveal">
+          <table aria-label="Classifier performance comparison">
+            <thead><tr><th>Model</th><th>Random accuracy</th><th>Macro recall</th><th>Macro AUC</th><th>Holdout accuracy</th><th>Same-detector recall</th></tr></thead>
+            <tbody>
+              <tr><td>Prototype · truth-derived</td><td>0.9787</td><td>0.9001</td><td>0.9972</td><td>0.9808</td><td>0.711</td></tr>
+              <tr class="best"><td>Trigger · noise ×0.0</td><td>0.9593</td><td>0.8103</td><td>0.9523</td><td>0.9637</td><td>0.550</td></tr>
+              <tr><td>Trigger · noise ×1.0</td><td>0.9491</td><td>0.7189</td><td>0.9431</td><td>0.9496</td><td>0.313</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">Random-split metrics are shown except where explicitly labeled holdout. Same-detector recall is the random-split value.</p>
+
+        <div class="result-callout reveal">
+          <div class="big">0.55<small>same-detector recall<br>clean trigger model</small></div>
+          <p>Cross-detector events retain a strong observable signature. Same-detector backscatter does not: after truth-derived hit information is removed, only subtle intra-detector energy and timing structure remains.</p>
+        </div>
+
+        <div class="figure-grid reveal">
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/training/noise0p0_confusion_random.png" alt="Confusion matrix for clean trigger-level model" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 08</span><span>Clean trigger-level model, random split. CLEAN and cross-detector events remain strongly separated.</span></figcaption>
+          </figure>
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/training/noise0p0_feature_importance.png" alt="Feature importance for clean trigger-level model" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 09</span><span>Feature gain for the clean model, showing which trigger observables carry class information.</span></figcaption>
+          </figure>
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/training/noise1p0_confusion_jobholdout.png" alt="Job-holdout confusion matrix for noise-trained model" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 10</span><span>Noise ×1.0 model under job-holdout evaluation. Same-detector recall falls as random triggers obscure its weak signature.</span></figcaption>
+          </figure>
+          <figure class="figure-card">
+            <div class="figure-media"><img src="figures/training/noise1p0_feature_importance.png" alt="Feature importance for noise-trained model" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 11</span><span>Feature importance after measured-rate noise injection, with multiplicity and timing assuming greater weight.</span></figcaption>
+          </figure>
+          <figure class="figure-card wide compact">
+            <div class="figure-media"><img src="figures/prototype/confusion_random.png" alt="Prototype truth-derived classifier confusion matrix" loading="lazy"></div>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 12</span><span>The truth-derived prototype provides the upper reference: 0.979 accuracy and 0.900 macro-recall before restricting the representation to DAQ-accessible trigger records.</span></figcaption>
+          </figure>
+        </div>
+
+        <div class="prose reveal">
+          <h3>Cross-noise robustness</h3>
+          <p>Noise-trained models generalize downward gracefully. A clean-trained model does not generalize upward: noise triggers are interpreted as backscatter, reducing clean-to-noisy accuracy to 0.743.</p>
+        </div>
+        <div class="table-wrap reveal">
+          <table aria-label="Cross-noise robustness">
+            <thead><tr><th>Train → test</th><th>Accuracy</th><th>Macro recall</th><th>Macro AUC</th><th>SAME recall</th></tr></thead>
+            <tbody>
+              <tr><td>×1.0 → ×0.0</td><td>0.9610</td><td>0.7880</td><td>0.9567</td><td>0.474</td></tr>
+              <tr><td>×1.0 → ×0.5</td><td>0.9537</td><td>0.7436</td><td>0.9517</td><td>0.367</td></tr>
+              <tr><td>×1.0 → ×2.0</td><td>0.9291</td><td>0.6544</td><td>0.9125</td><td>0.181</td></tr>
+              <tr><td>×0.0 → ×1.0</td><td>0.7430</td><td>0.7114</td><td>0.8695</td><td>0.528</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="prose reveal">
+          <h3><span class="subnum">3.2</span> Sim-vs-real validation</h3>
+          <p>The decisive test is not classifier accuracy on simulation, but whether the trigger representation actually resembles real detector output. Under the same two-detector coincidence selection, <strong>96.95%</strong> of real events pass, compared with only <strong>25.4–49.9%</strong> of simulated events across the noise sweep.</p>
+        </div>
+
+        <section class="domain-panel reveal" aria-labelledby="coincidence-title">
+          <div class="panel-head">
+            <div><span class="eyebrow">Coincidence selection · both_dets = 1</span><h3 id="coincidence-title">Simulation under-produces two-detector events</h3><p>Noise injection raises the simulated coincidence fraction, but even ×2.0 remains almost 47 percentage points below real data.</p></div>
+            <span class="scale-stamp" id="scale-stamp">selected · noise ×0.5</span>
+          </div>
+          <div class="rate-bars" id="rate-bars" aria-label="Coincidence rate comparison"></div>
+        </section>
+
+        <div class="table-wrap reveal">
+          <table aria-label="Simulation to real validation metrics">
+            <thead><tr><th>Noise scale</th><th>Coincidence fraction</th><th>Mean KS</th><th>Discriminator AUC</th><th>Interpretation</th></tr></thead>
+            <tbody>
+              <tr><td>×0.0</td><td>25.42%</td><td>0.1972</td><td>0.9901</td><td>clean but structurally distinct</td></tr>
+              <tr class="best"><td>×0.5 · best KS</td><td>33.06%</td><td>0.1812</td><td>0.9918</td><td>closest marginal match</td></tr>
+              <tr><td>×1.0</td><td>39.51%</td><td>0.2547</td><td>0.9939</td><td>noise begins to overshoot</td></tr>
+              <tr><td>×2.0</td><td>49.90%</td><td>0.3560</td><td>0.9971</td><td>more separable, not less</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="result-callout reveal">
+          <div class="big">≈0.99<small>domain discriminator AUC<br>at every noise scale</small></div>
+          <p>A flexible classifier can identify whether an event is real or simulated almost perfectly. The residual mismatch is not a small rate correction; it is structural.</p>
+        </div>
+
+        <section class="explorer reveal" aria-labelledby="explorer-title">
+          <div class="explorer-head">
+            <div><span class="eyebrow">Interactive figure · linked global control</span><h3 id="explorer-title">Explore the domain gap feature by feature</h3><p>Every panel compares normalized coincidence-selected distributions. Use the sticky noise-scale control above; all ten histograms and their KS readouts update together.</p></div>
+            <span class="explorer-note">Real = ink<br>Simulation = red</span>
+          </div>
+          <div class="chart-grid" id="distribution-grid">
+            <article class="chart-card" data-feature="n_trig"><div class="chart-card-head"><h4>Trigger multiplicity<small>Total triggers per event</small></h4><span class="chart-badge" id="ks-n_trig">KS —</span></div><div class="chart" id="chart-n_trig"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="n_trig_UD"><div class="chart-card-head"><h4>Upstream multiplicity<small>UD triggers per event</small></h4><span class="chart-badge" id="ks-n_trig_UD">KS —</span></div><div class="chart" id="chart-n_trig_UD"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="n_trig_LD"><div class="chart-card-head"><h4>Downstream multiplicity<small>LD triggers per event</small></h4><span class="chart-badge" id="ks-n_trig_LD">KS —</span></div><div class="chart" id="chart-n_trig_LD"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="trig_E_tot"><div class="chart-card-head"><h4>Total trigger energy<small>Summed event energy · keV</small></h4><span class="chart-badge" id="ks-trig_E_tot">KS —</span></div><div class="chart" id="chart-trig_E_tot"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="E_UD"><div class="chart-card-head"><h4>Upstream energy<small>UD summed energy · keV</small></h4><span class="chart-badge" id="ks-E_UD">KS —</span></div><div class="chart" id="chart-E_UD"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="E_UD_max"><div class="chart-card-head"><h4>Maximum upstream energy<small>Largest UD trigger · keV</small></h4><span class="chart-badge" id="ks-E_UD_max">KS —</span></div><div class="chart" id="chart-E_UD_max"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="E_LD_max"><div class="chart-card-head"><h4>Maximum downstream energy<small>Largest LD trigger · keV</small></h4><span class="chart-badge" id="ks-E_LD_max">KS —</span></div><div class="chart" id="chart-E_LD_max"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="trig_t_span"><div class="chart-card-head"><h4>Trigger time span<small>First-to-last trigger · µs</small></h4><span class="chart-badge" id="ks-trig_t_span">KS —</span></div><div class="chart" id="chart-trig_t_span"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="dt_firstUD_firstLD"><div class="chart-card-head"><h4>Cross-detector timing<small>First UD to first LD · µs</small></h4><span class="chart-badge" id="ks-dt_firstUD_firstLD">KS —</span></div><div class="chart" id="chart-dt_firstUD_firstLD"><div class="loading-line">Loading distribution…</div></div></article>
+            <article class="chart-card" data-feature="pix_spread_rms"><div class="chart-card-head"><h4>Spatial spread<small>RMS triggered-pixel spread · mm</small></h4><span class="chart-badge" id="ks-pix_spread_rms">KS —</span></div><div class="chart" id="chart-pix_spread_rms"><div class="loading-line">Loading distribution…</div></div></article>
+          </div>
+        </section>
+
+        <section class="scatter-panel reveal" aria-labelledby="scatter-title">
+          <div class="panel-toolbar">
+            <div><span class="eyebrow">Interactive sample · 2,000 events per domain</span><h3 id="scatter-title">Event-level phase space</h3></div>
+            <div class="axis-pickers">
+              <div class="axis-picker"><label for="scatter-x">X axis</label><select id="scatter-x"><option value="E_LD_max">E_LD_max</option><option value="E_UD">E_UD</option><option value="trig_t_span">trig_t_span</option><option value="n_trig">n_trig</option><option value="pix_spread_rms">pix_spread_rms</option><option value="dt_firstUD_firstLD">dt_firstUD_firstLD</option></select></div>
+              <div class="axis-picker"><label for="scatter-y">Y axis</label><select id="scatter-y"><option value="E_UD" selected>E_UD</option><option value="E_LD_max">E_LD_max</option><option value="trig_t_span">trig_t_span</option><option value="n_trig">n_trig</option><option value="pix_spread_rms">pix_spread_rms</option><option value="dt_firstUD_firstLD">dt_firstUD_firstLD</option></select></div>
+            </div>
+          </div>
+          <div class="chart chart-large" id="scatter-chart"><div class="loading-line">Loading event sample…</div></div>
+          <p class="panel-caption">The compact simulation sample is available at noise ×1.0 only; histogram controls do not alter this panel. Opacity reveals density rather than individual event identity.</p>
+        </section>
+
+        <section class="importance-panel reveal" aria-labelledby="importance-title">
+          <div class="panel-toolbar"><div><span class="eyebrow">Domain discriminator · noise ×0.5</span><h3 id="importance-title">What makes simulation look simulated?</h3></div></div>
+          <div class="chart chart-large" id="importance-chart"><div class="loading-line">Loading feature importance…</div></div>
+          <p class="panel-caption">XGBoost gain from the real-vs-sim discriminator. Timing, upstream energy, upstream multiplicity, and spatial spread dominate the separation.</p>
+        </section>
+
+        <div class="prose reveal">
+          <h3><span class="subnum">3.3</span> Physics sanity check</h3>
+          <p>Applying the noise ×1.0 classifier to all real events predicts a percent-level backscatter population: 96.9% CLEAN, 1.6% BS_SAME_DET, and 1.5% BS_CROSS_DET. This aggregate fraction is plausible, but it cannot validate event-level labels while the domain gap remains this large.</p>
+        </div>
+
+        <div class="classification-summary reveal">
+          <div>
+            <div class="class-stack" aria-label="Predicted real event class fractions"><span class="class-clean" style="width:96.925%"></span><span class="class-same" style="width:1.619%"></span><span class="class-cross" style="width:1.455%"></span></div>
+            <div class="class-legend"><span><i class="class-clean"></i>CLEAN 96.9%</span><span><i class="class-same"></i>BS_SAME_DET 1.6%</span><span><i class="class-cross"></i>BS_CROSS_DET 1.5%</span></div>
+          </div>
+          <div class="sanity-number"><strong>257 keV</strong><span>median real electron-candidate E_LD_max<br>3.25% exceed the 782 keV endpoint</span></div>
+        </div>
+      </section>
+
+      <section class="paper-section" id="discussion">
+        <header class="section-head">
+          <span class="section-num">04</span>
+          <h2>Discussion</h2>
+          <span class="folio">Diagnosis</span>
+        </header>
+
+        <div class="prose reveal">
+          <p class="dropcap">The domain gap is real and not subtle. A two-sample AUC of 0.99 means that the same 22 trigger-level features used for physics classification also carry enough information to identify the source domain almost perfectly. Crucially, the discriminator and the per-feature KS distances agree on where the mismatch lives.</p>
+        </div>
+
+        <ol class="findings-list reveal">
+          <li><span class="ordinal">01</span><div><h3>Upstream energy response</h3><p><code>E_UD</code> and <code>E_UD_max</code> top both mismatch rankings. Together with the coincidence-rate gap, they indicate that simulation does not trigger the proton-side detector often or energetically enough.</p></div></li>
+          <li><span class="ordinal">02</span><div><h3>Timing structure</h3><p>Real trigger spans are about four times longer—43.4 µs versus 11.2 µs—and the first-UD to first-LD interval is among the five largest KS discrepancies.</p></div></li>
+          <li><span class="ordinal">03</span><div><h3>Spatial spread</h3><p>Real events activate a broader arrangement of pixels than independent single-channel Poisson noise predicts. Correlated noise, cross-talk, or charge-sharing is missing.</p></div></li>
+        </ol>
+
+        <div class="prose reveal">
+          <h3>Why same-detector recall remains low</h3>
+          <p>BS_SAME_DET is both rare—2,043 labeled events in the training population—and weakly observable at trigger level. The primary and return deposits occur on the same detector, so the strongest cross-detector features do not help. Its useful signature is hidden in fine intra-detector timing and energy structure that the current feature contract does not explicitly summarize.</p>
+        </div>
+
+        <p class="conclusion reveal">Measured-rate noise is directionally useful, but it acts mainly as a rate knob. Closing the sim-to-real gap requires a better model of the detector—not simply more random triggers.</p>
+      </section>
+
+      <section class="paper-section" id="next-steps">
+        <header class="section-head">
+          <span class="section-num">05</span>
+          <h2>Next Steps</h2>
+          <span class="folio">Action</span>
+        </header>
+
+        <ol class="next-list reveal">
+          <li><span class="ordinal">01</span><div><h3>Repair the upstream detector response</h3><p>Verify proton energy scale, quenching, thresholds, and trigger efficiency. This is the highest-leverage intervention because it connects directly to both the top KS features and the coincidence deficit.</p></div></li>
+          <li><span class="ordinal">02</span><div><h3>Model time-correlated activity</h3><p>Add afterpulse-like clusters, multiple triggers per channel, and a realistic effective record-window process to close <code>trig_t_span</code> and cross-detector timing gaps.</p></div></li>
+          <li><span class="ordinal">03</span><div><h3>Add spatial correlation</h3><p>Replace purely independent channel noise with cross-talk, charge-sharing, or correlated multi-pixel processes that can reproduce the observed spread.</p></div></li>
+          <li><span class="ordinal">04</span><div><h3>Target the difficult class explicitly</h3><p>Add same-detector trigger gaps and ordered intra-detector energy features, then revisit class weighting and calibration for BS_SAME_DET.</p></div></li>
+          <li><span class="ordinal">05</span><div><h3>Re-sweep and re-validate</h3><p>Only after structural response fixes should the global noise scale be tuned again. Recompute feature KS distances, discriminator AUC, and cross-noise robustness.</p></div></li>
+          <li><span class="ordinal">06</span><div><h3>Review calibration with DAQ expertise</h3><p>Confirm the zero offset and 90 ADC = 30 keV anchor; a nonzero pedestal could explain part of the upstream-energy discrepancy.</p></div></li>
+        </ol>
+      </section>
+    </article>
+
+    <footer class="colophon">
+      <div>
+        <h2>Data provenance</h2>
+        <p>All values trace to <code>REPORT_trigger_level_sim_to_real.md</code> and machine-readable artifacts under <code>data/metrics/</code>. Histograms use common bin edges and identical coincidence selection in both domains.</p>
+        <p>Real data: a single representative Nab physics run (see §2.1). Simulation: Geant4 hits transformed through the measured trigger-response emulator at four noise scales.</p>
+      </div>
+      <div>
+        <h2>Reproducibility</h2>
+        <p>The page reads local JSON and CSV directly; no metric is embedded inside a proprietary chart bundle. Global controls update ten distributions from <code>data/distributions/</code>.</p>
+        <p>Model: XGBoost, 400 trees, depth 6, learning rate 0.05. Evaluation: random 80/20 split and simulation-job holdout.</p>
+      </div>
+    </footer>
+    <div class="end-mark" aria-hidden="true">◆</div>
+  </main>
+
+  <noscript><p style="padding:2rem;font-family:sans-serif">JavaScript is required for the interactive charts. The article text and static figures remain available.</p></noscript>
+</body>
+</html>

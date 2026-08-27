@@ -1,0 +1,176 @@
+{
+  "tag": "noise0p0",
+  "train_file": "/storage/home/hcoda1/9/asaenko3/Research/labels/sim_features_noise0p0.parquet",
+  "features": [
+    "n_trig",
+    "n_trig_UD",
+    "n_trig_LD",
+    "trig_E_tot",
+    "trig_E_max",
+    "trig_E_mean",
+    "trig_t_span",
+    "E_UD",
+    "E_LD",
+    "frac_E_UD",
+    "E_UD_max",
+    "E_LD_max",
+    "det_first",
+    "det_last",
+    "det_mismatch",
+    "both_dets",
+    "dt_firstUD_firstLD",
+    "n_unique_pix",
+    "pix_spread_max",
+    "pix_spread_rms",
+    "Ew_mean_t",
+    "earliest_E"
+  ],
+  "n_rows_after_filter": 51195,
+  "per_class_counts": {
+    "CLEAN": 44140,
+    "BS_CROSS_DET": 5011,
+    "BS_SAME_DET": 2044
+  },
+  "job_train_stems": [
+    "NabSimulation_Output_NormalConfig_100000000_0",
+    "NabSimulation_Output_NormalConfig_10000000_0",
+    "NabSimulation_Output_NormalConfig_1000000_0",
+    "NabSimulation_Output_NormalConfig_100000_0",
+    "NabSimulation_Output_NormalConfig_10020000_0",
+    "NabSimulation_Output_NormalConfig_10040000_0",
+    "NabSimulation_Output_NormalConfig_10060000_0",
+    "NabSimulation_Output_NormalConfig_10080000_0",
+    "NabSimulation_Output_NormalConfig_10100000_0",
+    "NabSimulation_Output_NormalConfig_10120000_0"
+  ],
+  "job_test_stems": [
+    "NabSimulation_Output_NormalConfig_10140000_0",
+    "NabSimulation_Output_NormalConfig_10160000_0"
+  ],
+  "random": {
+    "n_test": 10239,
+    "accuracy": 0.9592733665397012,
+    "macro_recall": 0.8102775032942392,
+    "auc_macro": 0.9522926045438576,
+    "auc_per_class": {
+      "BS_CROSS_DET": 0.9842086963887532,
+      "BS_SAME_DET": 0.9130428780714694,
+      "CLEAN": 0.9596262391713498
+    },
+    "per_class_recall": {
+      "BS_CROSS_DET": 0.8952095808383234,
+      "BS_SAME_DET": 0.5501222493887531,
+      "CLEAN": 0.9855006796556411
+    },
+    "confusion_matrix": [
+      [
+        897,
+        10,
+        95
+      ],
+      [
+        0,
+        225,
+        184
+      ],
+      [
+        4,
+        124,
+        8700
+      ]
+    ]
+  },
+  "jobholdout": {
+    "n_test": 8535,
+    "accuracy": 0.9636789689513767,
+    "macro_recall": 0.819442378584843,
+    "auc_macro": 0.9544922554417808,
+    "auc_per_class": {
+      "BS_CROSS_DET": 0.9858403239667308,
+      "BS_SAME_DET": 0.9167336918864636,
+      "CLEAN": 0.9609027504721482
+    },
+    "per_class_recall": {
+      "BS_CROSS_DET": 0.9033816425120773,
+      "BS_SAME_DET": 0.567398119122257,
+      "CLEAN": 0.9875473741201949
+    },
+    "confusion_matrix": [
+      [
+        748,
+        3,
+        77
+      ],
+      [
+        2,
+        181,
+        136
+      ],
+      [
+        1,
+        91,
+        7296
+      ]
+    ]
+  },
+  "cross_eval": [
+    {
+      "n_test": 10238,
+      "accuracy": 0.7430162141043173,
+      "macro_recall": 0.7114174021732383,
+      "auc_macro": 0.8694540929582474,
+      "auc_per_class": {
+        "BS_CROSS_DET": 0.9511738216939876,
+        "BS_SAME_DET": 0.7845073743905876,
+        "CLEAN": 0.8726810827901668
+      },
+      "per_class_recall": {
+        "BS_CROSS_DET": 0.8672654690618763,
+        "BS_SAME_DET": 0.5281173594132029,
+        "CLEAN": 0.7388693780446358
+      },
+      "confusion_matrix": [
+        [
+          869,
+          17,
+          116
+        ],
+        [
+          38,
+          216,
+          155
+        ],
+        [
+          835,
+          1470,
+          6522
+        ]
+      ],
+      "source": "noise1p0"
+    }
+  ],
+  "feature_importance": {
+    "both_dets": 0.24685481190681458,
+    "n_trig": 0.2407199591398239,
+    "n_trig_LD": 0.21092788875102997,
+    "det_mismatch": 0.10429192334413528,
+    "n_trig_UD": 0.061490561813116074,
+    "n_unique_pix": 0.05745312198996544,
+    "dt_firstUD_firstLD": 0.03300142288208008,
+    "Ew_mean_t": 0.005830412730574608,
+    "det_last": 0.005083858501166105,
+    "E_UD": 0.00501394085586071,
+    "trig_t_span": 0.004695474170148373,
+    "pix_spread_max": 0.004078976809978485,
+    "frac_E_UD": 0.0024777839425951242,
+    "E_LD_max": 0.002352464944124222,
+    "trig_E_mean": 0.0022645408753305674,
+    "trig_E_max": 0.0022101837676018476,
+    "trig_E_tot": 0.0021146959625184536,
+    "E_LD": 0.002061001257970929,
+    "earliest_E": 0.002029968658462167,
+    "pix_spread_rms": 0.0020174558740109205,
+    "E_UD_max": 0.0019674659706652164,
+    "det_first": 0.001062062568962574
+  }
+}

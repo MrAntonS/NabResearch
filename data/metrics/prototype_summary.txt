@@ -1,0 +1,81 @@
+Prototype 3-class classifier (CLEAN / BS_SAME_DET / BS_CROSS_DET)
+rows_after_filter = 51228
+per_class_counts:
+event_class
+CLEAN              44169
+BS_CROSS_DET        5015
+BS_SAME_DET         2044
+ACCIDENTAL             0
+NO_TRIGGER             0
+MISSED_PROTON          0
+MISSED_ELECTRON        0
+BS_LOST                0
+BREMS_LOSS             0
+DL_DEGRADED            0
+features = ['pPx', 'ePx', 'DetFirstHit', 'DetLastHit', 'pTOF', 'eTOF', 'pEng', 'eEng', 'radDiff', 'n_trig', 'trig_E_tot', 'trig_E_max', 'trig_t_span', 'n_trig_UD', 'n_trig_LD', 'det_mismatch']
+
+===== Evaluation: random =====
+n_test = 10246
+overall accuracy = 0.9787
+macro recall     = 0.9001
+ROC-AUC (ovr) per class = BS_CROSS_DET=1.0000  BS_SAME_DET=0.9936  CLEAN=0.9979
+ROC-AUC (ovr) macro     = 0.9972
+
+              precision    recall  f1-score   support
+
+BS_CROSS_DET      0.999     1.000     1.000      1003
+ BS_SAME_DET      0.746     0.711     0.728       409
+       CLEAN      0.987     0.989     0.988      8834
+
+    accuracy                          0.979     10246
+   macro avg      0.911     0.900     0.905     10246
+weighted avg      0.978     0.979     0.978     10246
+
+
+confusion matrix (rows=true, cols=pred):
+[[1003    0    0]
+ [   0  291  118]
+ [   1   99 8734]]
+
+
+===== Evaluation: jobholdout =====
+n_test = 8541
+overall accuracy = 0.9808
+macro recall     = 0.9013
+ROC-AUC (ovr) per class = BS_CROSS_DET=1.0000  BS_SAME_DET=0.9937  CLEAN=0.9981
+ROC-AUC (ovr) macro     = 0.9973
+
+              precision    recall  f1-score   support
+
+BS_CROSS_DET      1.000     0.999     0.999       828
+ BS_SAME_DET      0.760     0.715     0.737       319
+       CLEAN      0.988     0.990     0.989      7394
+
+    accuracy                          0.981      8541
+   macro avg      0.916     0.901     0.908      8541
+weighted avg      0.980     0.981     0.981      8541
+
+
+confusion matrix (rows=true, cols=pred):
+[[ 827    0    1]
+ [   0  228   91]
+ [   0   72 7322]]
+
+
+feature importance (gain), top 16:
+det_mismatch    0.3504
+n_trig          0.2011
+n_trig_LD       0.1986
+n_trig_UD       0.1634
+pTOF            0.0252
+trig_t_span     0.0239
+DetLastHit      0.0183
+eTOF            0.0043
+pEng            0.0024
+DetFirstHit     0.0023
+trig_E_max      0.0020
+eEng            0.0018
+trig_E_tot      0.0018
+ePx             0.0017
+radDiff         0.0017
+pPx             0.0013

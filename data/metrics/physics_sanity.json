@@ -1,0 +1,63 @@
+{
+  "real_E_LD_max": {
+    "median": 257.0,
+    "max": 2722.0,
+    "frac_gt_beta_endpoint_782keV": 0.03251996936207462,
+    "frac_lt_0": 0.0
+  },
+  "predicted_class_distribution": {
+    "CLEAN": 44290,
+    "BS_SAME_DET": 740,
+    "BS_CROSS_DET": 665
+  },
+  "conditioned_medians": {
+    "BS_CROSS_DET": {
+      "n_real": 665,
+      "n_sim": 19102,
+      "real": {
+        "E_LD_max": 132.0,
+        "E_UD_max": 111.66666412353516,
+        "dt_firstUD_firstLD": -440.0,
+        "trig_t_span": 24856.0
+      },
+      "sim": {
+        "E_LD_max": 186.76270294189453,
+        "E_UD_max": 119.02776336669922,
+        "dt_firstUD_firstLD": -34.78228015860658,
+        "trig_t_span": 9225.713522408794
+      }
+    },
+    "BS_SAME_DET": {
+      "n_real": 740,
+      "n_sim": 1172,
+      "real": {
+        "E_LD_max": 175.83333587646484,
+        "E_UD_max": 21.66666603088379,
+        "dt_firstUD_firstLD": -27784.0,
+        "trig_t_span": 28000.0
+      },
+      "sim": {
+        "E_LD_max": 247.68101501464844,
+        "E_UD_max": 21.011534690856934,
+        "dt_firstUD_firstLD": -29435.484734807123,
+        "trig_t_span": 32897.33729284694
+      }
+    },
+    "CLEAN": {
+      "n_real": 44290,
+      "n_sim": 72771,
+      "real": {
+        "E_LD_max": 261.3333435058594,
+        "E_UD_max": 21.33333396911621,
+        "dt_firstUD_firstLD": -32864.0,
+        "trig_t_span": 44568.0
+      },
+      "sim": {
+        "E_LD_max": 322.9040832519531,
+        "E_UD_max": 34.57051086425781,
+        "dt_firstUD_firstLD": -18530.47884687878,
+        "trig_t_span": 28447.556179380892
+      }
+    }
+  }
+}

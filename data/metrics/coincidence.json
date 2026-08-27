@@ -1,0 +1,25 @@
+{
+  "real_n": 45695,
+  "real_both_dets_frac": 0.9695371484845169,
+  "criterion": "both_dets==1 (n_trig_UD>=1 AND n_trig_LD>=1)",
+  "noise0p0": {
+    "pass_frac": 0.25424002241533755,
+    "n_pass": 59887,
+    "n_total": 235553
+  },
+  "noise0p5": {
+    "pass_frac": 0.33058468854825696,
+    "n_pass": 77856,
+    "n_total": 235510
+  },
+  "noise1p0": {
+    "pass_frac": 0.39505192632660513,
+    "n_pass": 93045,
+    "n_total": 235526
+  },
+  "noise2p0": {
+    "pass_frac": 0.498953375311546,
+    "n_pass": 117513,
+    "n_total": 235519
+  }
+}
