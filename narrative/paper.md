@@ -7,16 +7,21 @@
 We evaluate whether a Monte Carlo simulation of the Nab spectrometer can stand in
 for real DAQ output when training a machine-learning classifier for electron
 backscatter events. We convert both simulated hits and real DAQ triggers to
-a single, unified trigger-record representation, inject noise-induced pixel triggers
-into the simulation at four scales, and retrain a 22-feature, 3-class XGBoost
-classifier (CLEAN / BS_SAME_DET / BS_CROSS_DET) on the result. The pipeline is
+a single, unified trigger-record representation and train 22-feature, 3-class XGBoost
+classifiers (CLEAN / BS_SAME_DET / BS_CROSS_DET) under two simulation conditions:
+no injected noise (×0.0) and nominal measured-rate noise (×1.0). The pipeline is
 validated end-to-end — identical schemas, deterministic seeds, reproducible metrics —
-and the trigger-level classifier reaches 0.96 accuracy on clean simulation. However,
-sim-to-real distribution matching is poor: a two-sample discriminator separates real
-from simulated events with AUC ≈ 0.99 at every noise scale, and the mean
-Kolmogorov–Smirnov distance across features is at best 0.18. The dominant residual
-gaps are the upstream (proton-side) energy response, timing structure, and spatial
-spread. We close with a ranked set of model-improvement recommendations.
+and the trigger-level classifier reaches 0.96 accuracy on simulated data with no
+injected noise, with recall of 98.6% for CLEAN, 89.5% for cross-detector backscatter,
+and 55.0% for same-detector backscatter. However, real data remain structurally
+different from simulated trigger records: a two-sample discriminator separates them
+with AUC ≈ 0.99 at every evaluated noise scale, and the mean Kolmogorov–Smirnov
+distance across features is at best 0.18. The leading discrepancies are in the
+emulated detector and readout response—not necessarily the Geant4 particle transport—
+including upstream energy response, timing, and spatially correlated pixel activity.
+This indicates that the current independent Poisson noise and trigger-response model
+is not yet faithful to the real DAQ. We close with a ranked set of model-improvement
+recommendations.
 
 ## 1. Introduction
 
