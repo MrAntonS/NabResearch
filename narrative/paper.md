@@ -171,9 +171,12 @@ noise-rate correction.
 **Discriminator top-10 importances (×0.5, gain):** `trig_t_span` 0.180, `E_UD`
 0.124, `E_UD_max` 0.102, `n_trig_UD` 0.098, `det_last` 0.095, `pix_spread_rms`
 0.086, `pix_spread_max` 0.067, `dt_firstUD_firstLD` 0.062, `det_mismatch` 0.058,
-`n_trig` 0.025.
+`n_trig` 0.025. This ordering is evidence for mismatches in timing, upstream
+detector response, event ordering and multiplicity, and correlated pixel activity;
+gain only ranks what the discriminator uses and does not by itself establish
+causation.
 
-**Physics sanity** (the ×1.0 model applied to all real events): predicted classes
+**Classifier predictions on real data** (the ×1.0 model applied to all real events): predicted classes
 **CLEAN 96.9% / BS_SAME_DET 1.6% / BS_CROSS_DET 1.5%** — a total backscatter fraction
 of ~3%, in the expected percent-level range. The real electron-candidate `E_LD_max`
 has a plausible median (257 keV) but 3.25% exceed the 782 keV beta endpoint (max

@@ -64,8 +64,7 @@ those, the model would look brilliant in the lab and fail in the real world.
 **The good news:** the pipeline works end-to-end. The model sorts clean vs.
 bounced-back events correctly about **96%** of the time on clean simulation, and when
 we run it on *real* data it predicts only about **3%** of events are backscatter —
-right in the expected range, and a reassuring sanity check that the physics isn't
-wildly off.
+which is broadly consistent with an expected percent-level backscatter rate.
 
 **The bad news:** the simulation doesn't match reality well enough yet. We built a
 separate "detective" model whose only job is to guess whether an event came from the

@@ -331,11 +331,11 @@
         <section class="importance-panel reveal" aria-labelledby="importance-title">
           <div class="panel-toolbar"><div><span class="eyebrow">Domain discriminator · noise ×0.5</span><h3 id="importance-title">What makes simulation look simulated?</h3></div></div>
           <div class="chart chart-large" id="importance-chart"><div class="loading-line">Loading feature importance…</div></div>
-          <p class="panel-caption">XGBoost gain from the real-vs-sim discriminator. Timing, upstream energy, upstream multiplicity, and spatial spread dominate the separation.</p>
+          <p class="panel-caption">Discriminator gain ranks the features the model uses to separate real from simulated trigger records. Trigger time span is top (0.180), then upstream summed and max energy (0.124/0.102), then upstream trigger count and last-trigger detector (0.097/0.095), then spatial spread (RMS 0.086). Together these point to mismatches in timing, upstream detector response, event ordering and multiplicity, and correlated pixel activity. Gain only ranks what the discriminator relies on and does not by itself establish causation.</p>
         </section>
 
         <div class="prose reveal">
-          <h3><span class="subnum">3.3</span> Physics sanity check</h3>
+          <h3><span class="subnum">3.3</span> Classifier predictions on real data</h3>
           <p>Applying the noise ×1.0 classifier to all real events predicts a percent-level backscatter population: 96.9% CLEAN, 1.6% BS_SAME_DET, and 1.5% BS_CROSS_DET. This aggregate fraction is plausible, but it cannot validate event-level labels while the domain gap remains this large.</p>
         </div>
 
