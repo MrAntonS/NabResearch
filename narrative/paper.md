@@ -17,8 +17,8 @@ and 55.0% for same-detector backscatter. However, real data remain structurally
 different from simulated trigger records: a two-sample discriminator separates them
 with AUC ≈ 0.99 at every evaluated noise scale, and the mean Kolmogorov–Smirnov
 distance across features is at best 0.18. The leading discrepancies are in the
-emulated detector and readout response—not necessarily the Geant4 particle transport—
-including upstream energy response, timing, and spatially correlated pixel activity.
+emulated detector and readout response, including upstream energy response, timing,
+and spatially correlated pixel activity.
 This indicates that the current independent Poisson noise and trigger-response model
 is not yet faithful to the real DAQ. We close with a ranked set of model-improvement
 recommendations.
@@ -64,11 +64,11 @@ features.
 The measured detector response is recorded in the accompanying machine-readable metrics bundle:
 
 - **Energy calibration:** `0.3333 keV/ADC` (anchored at 90 ADC = 30 keV electron
-  threshold; offset 0). [FIG: pulser_calibration.png]
+  threshold; offset 0).
 - **Channel map:** **183 OK / 25 dead** channels. [FIG: channel_occupancy.png]
 - **Record window:** a **fixed 56 µs** DAQ record window.
-- Per-channel noise RMS and fake-trigger rates characterize the background.
-  [FIG: noise_rms_per_channel.png] [FIG: fake_rate_per_channel.png]
+- Per-channel trigger rates characterize the background used for fake-trigger
+  injection. [FIG: fake_rate_per_channel.png]
 
 ### 2.3 Trigger emulator and noise scales
 
@@ -114,7 +114,8 @@ Ew_mean_t, earliest_E
 
 [FIG: noise0p0_confusion_random.png] [FIG: noise0p0_feature_importance.png]
 [FIG: noise1p0_confusion_jobholdout.png] [FIG: noise1p0_feature_importance.png]
-[FIG: confusion_random.png] [FIG: feature_importance.png] (prototype baseline, for comparison)
+[FIG: confusion_random.png] [FIG: feature_importance.png] (prototype baseline on
+simulated data without injected detector noise, for comparison)
 
 Dropping truth-derived hit features costs ~3 points of accuracy and ~8–9 points of
 macro-recall, concentrated in **BS_SAME_DET** (0.711 → 0.550 clean, 0.313 with
@@ -129,9 +130,10 @@ noise).
 | ×1.0 → ×2.0 | 0.9291 | 0.6544 | 0.9125 | 0.181 |
 | ×0.0 → ×1.0 | 0.7430 | 0.7114 | 0.8695 | 0.528 |
 
-Noise-trained models generalize downward gracefully; a clean-trained model collapses
-on noisy data (clean → ×1.0 accuracy 0.743, CLEAN recall 0.739 — noise triggers
-read as backscatter).
+The model trained with nominal noise retains 96.1% accuracy on data without injected
+noise and 95.4% at half the nominal noise rate. In contrast, the model trained without
+noise falls to 74.3% accuracy when tested at the nominal noise rate because it often
+mistakes additional triggers for backscatter.
 
 ### 3.2 Sim-vs-real validation
 

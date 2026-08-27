@@ -75,7 +75,7 @@
       <div class="lead-grid reveal">
         <section class="abstract" aria-labelledby="abstract-title">
           <h2 id="abstract-title">Abstract</h2>
-          <p>We evaluate whether a Monte Carlo simulation of the Nab spectrometer can stand in for real DAQ output when training a machine-learning classifier for electron backscatter events. Simulated hits and real DAQ triggers are converted to one trigger-record representation, and 22-feature, three-class XGBoost classifiers are trained under two simulation conditions: no injected noise (×0.0) and nominal measured-rate noise (×1.0). The trigger-level classifier reaches <strong>0.96 accuracy</strong> on simulated data with no injected noise, with recall of <strong>98.6%</strong> for CLEAN, <strong>89.5%</strong> for cross-detector backscatter, and <strong>55.0%</strong> for same-detector backscatter. Yet real data remain structurally different from simulated trigger records: a discriminator separates them with <strong>AUC ≈ 0.99</strong> at every evaluated noise scale. The leading discrepancies are in the emulated detector and readout response—not necessarily the Geant4 particle transport—including upstream energy response, timing, and spatially correlated pixel activity. This indicates that the current independent Poisson noise and trigger-response model is not yet faithful to the real DAQ.</p>
+          <p>We evaluate whether a Monte Carlo simulation of the Nab spectrometer can stand in for real DAQ output when training a machine-learning classifier for electron backscatter events. Simulated hits and real DAQ triggers are converted to one trigger-record representation, and 22-feature, three-class XGBoost classifiers are trained under two simulation conditions: no injected noise (×0.0) and nominal measured-rate noise (×1.0). The trigger-level classifier reaches <strong>0.96 accuracy</strong> on simulated data with no injected noise, with recall of <strong>98.6%</strong> for CLEAN, <strong>89.5%</strong> for cross-detector backscatter, and <strong>55.0%</strong> for same-detector backscatter. Yet real data remain structurally different from simulated trigger records: a discriminator separates them with <strong>AUC ≈ 0.99</strong> at every evaluated noise scale. The leading discrepancies are in the emulated detector and readout response, including upstream energy response, timing, and spatially correlated pixel activity. This indicates that the current independent Poisson noise and trigger-response model is not yet faithful to the real DAQ.</p>
         </section>
         <aside class="takeaway" aria-label="Principal finding">
           <span class="label">Principal finding</span>
@@ -149,40 +149,32 @@
           <p>Real triggers come from DAQ Run 8908, extracted directly from the trigger stream: <strong>115,782 triggers</strong> organized into <strong>45,695 coincidence events</strong>. Each event carries timestamp, pixel, and energy in ADC, mapped to detector side and position. Leakage-prone fields such as event type and waveform metadata are excluded from the feature set.</p>
 
           <h3><span class="subnum">2.2</span> Detector response</h3>
-          <p>The measured response anchors the trigger emulator: 0.3333 keV/ADC, 183 healthy and 25 dead channels, and a fixed 56 µs DAQ record window. Per-channel noise RMS and fake-trigger rates supply the measured background model.</p>
+          <p>The measured response anchors the trigger emulator: 0.3333 keV/ADC, 183 healthy and 25 dead channels, and a fixed 56 µs DAQ record window. Per-channel trigger rates and the measured single-trigger amplitude spectrum supply the background model.</p>
         </div>
 
         <div class="method-grid reveal">
           <article class="method-card"><span class="eyebrow">Step 1 · Extraction</span><h3>One trigger contract</h3><p>Real DAQ records are normalized into event-level trigger lists without training labels or waveform-derived shortcuts.</p></article>
-          <article class="method-card"><span class="eyebrow">Step 2 · Response</span><h3>Measured detector behavior</h3><p>Calibration, occupancy, baseline noise, and fake rates are measured from the real data and used downstream.</p></article>
+          <article class="method-card"><span class="eyebrow">Step 2 · Response</span><h3>Measured detector behavior</h3><p>Calibration, occupancy, trigger rates, and background amplitudes are measured from the real data and used downstream.</p></article>
           <article class="method-card"><span class="eyebrow">Step 3 · Emulation</span><h3>Hits become triggers</h3><p>Geant4 hits pass through dead-channel masking, energy smearing, thresholds, and Poisson fake-trigger injection.</p></article>
           <article class="method-card"><span class="eyebrow">Step 4 · Validation</span><h3>Train, then challenge</h3><p>XGBoost is evaluated on random and job-held-out events; simulation is then compared directly with real data.</p></article>
         </div>
 
         <div class="figure-grid reveal">
           <figure class="figure-card">
-            <div class="figure-media"><img src="figures/detector_response/pulser_calibration.png" alt="Pulser calibration line" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 02</span><span>Pulser calibration establishes the 0.3333 keV/ADC conversion and the 90 ADC = 30 keV anchor.</span></figcaption>
-          </figure>
-          <figure class="figure-card">
             <div class="figure-media"><img src="figures/detector_response/beta_endpoint_spectrum.png" alt="Coincidence beta spectrum with endpoint" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 03</span><span>The coincidence electron spectrum provides an absolute-scale cross-check at the 782 keV beta endpoint.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 02</span><span>The coincidence electron spectrum provides an absolute-scale cross-check at the 782 keV beta endpoint.</span></figcaption>
           </figure>
           <figure class="figure-card">
             <div class="figure-media"><img src="figures/detector_response/channel_occupancy.png" alt="Detector channel occupancy" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 04</span><span>Channel occupancy identifies 183 usable and 25 dead channels across the segmented detectors.</span></figcaption>
-          </figure>
-          <figure class="figure-card">
-            <div class="figure-media"><img src="figures/detector_response/noise_rms_per_channel.png" alt="Noise RMS by detector channel" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 05</span><span>Per-channel baseline RMS captures nonuniform detector noise instead of assuming one global width.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 03</span><span>Channel occupancy identifies 183 usable and 25 dead channels across the segmented detectors.</span></figcaption>
           </figure>
           <figure class="figure-card">
             <div class="figure-media"><img src="figures/detector_response/fake_rate_per_channel.png" alt="Fake trigger rate by detector channel" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 06</span><span>Measured fake-trigger rates drive independent Poisson noise injection at four global scales.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 04</span><span>Measured fake-trigger rates drive independent Poisson noise injection at four global scales.</span></figcaption>
           </figure>
           <figure class="figure-card">
             <div class="figure-media"><img src="figures/detector_response/singles_adc_spectrum.png" alt="Single trigger ADC spectrum" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 07</span><span>The single-trigger spectrum characterizes thresholds and the amplitude distribution used for noise triggers.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 05</span><span>The single-trigger spectrum characterizes thresholds and the amplitude distribution used for noise triggers.</span></figcaption>
           </figure>
         </div>
 
@@ -239,29 +231,29 @@
         <div class="figure-grid reveal">
           <figure class="figure-card">
             <div class="figure-media"><img src="figures/training/noise0p0_confusion_random.png" alt="Confusion matrix for clean trigger-level model" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 08</span><span>Clean trigger-level model, random split. CLEAN and cross-detector events remain strongly separated.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 06</span><span>Clean trigger-level model, random split. CLEAN and cross-detector events remain strongly separated.</span></figcaption>
           </figure>
           <figure class="figure-card">
             <div class="figure-media"><img src="figures/training/noise0p0_feature_importance.png" alt="Feature importance for clean trigger-level model" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 09</span><span>Feature gain for the clean model, showing which trigger observables carry class information.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 07</span><span>Feature gain for the clean model, showing which trigger observables carry class information.</span></figcaption>
           </figure>
           <figure class="figure-card">
             <div class="figure-media"><img src="figures/training/noise1p0_confusion_jobholdout.png" alt="Job-holdout confusion matrix for noise-trained model" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 10</span><span>Noise ×1.0 model under job-holdout evaluation. Same-detector recall falls as random triggers obscure its weak signature.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 08</span><span>Noise ×1.0 model under job-holdout evaluation. Same-detector recall falls as random triggers obscure its weak signature.</span></figcaption>
           </figure>
           <figure class="figure-card">
             <div class="figure-media"><img src="figures/training/noise1p0_feature_importance.png" alt="Feature importance for noise-trained model" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 11</span><span>Feature importance after measured-rate noise injection, with multiplicity and timing assuming greater weight.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 09</span><span>Feature importance after measured-rate noise injection, with multiplicity and timing assuming greater weight.</span></figcaption>
           </figure>
           <figure class="figure-card wide compact">
             <div class="figure-media"><img src="figures/prototype/confusion_random.png" alt="Prototype truth-derived classifier confusion matrix" loading="lazy"></div>
-            <figcaption class="figure-caption"><span class="figure-label">Fig. 12</span><span>The truth-derived prototype provides the upper reference: 0.979 accuracy and 0.900 macro-recall before restricting the representation to DAQ-accessible trigger records.</span></figcaption>
+            <figcaption class="figure-caption"><span class="figure-label">Fig. 10</span><span>Original 16-feature prototype trained and tested on simulated data without injected detector noise, using a random 80/20 split. It provides the upper reference: 0.979 accuracy and 0.900 macro-recall before restricting the representation to DAQ-accessible trigger records.</span></figcaption>
           </figure>
         </div>
 
         <div class="prose reveal">
           <h3>Cross-noise robustness</h3>
-          <p>Noise-trained models generalize downward gracefully. A clean-trained model does not generalize upward: noise triggers are interpreted as backscatter, reducing clean-to-noisy accuracy to 0.743.</p>
+          <p>The model trained with nominal noise retains 96.1% accuracy on data without injected noise and 95.4% at half the nominal noise rate. In contrast, the model trained without noise falls to 74.3% accuracy when tested at the nominal noise rate because it often mistakes additional triggers for backscatter.</p>
         </div>
         <div class="table-wrap reveal">
           <table aria-label="Cross-noise robustness">

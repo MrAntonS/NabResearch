@@ -8,10 +8,8 @@ four subfolders below. Each row maps a file to a 1–2 sentence caption and the
 
 | File | Caption | Section |
 |---|---|---|
-| `pulser_calibration.png` | Pulser calibration line establishing the 0.3333 keV/ADC scale and the 90 ADC = 30 keV anchor (offset 0). | 2.2 |
 | `singles_adc_spectrum.png` | Single-trigger ADC (energy) spectrum used to characterize threshold crossings and the noise amplitude spectrum. | 2.2 |
 | `beta_endpoint_spectrum.png` | Coincidence electron spectrum with the 782 keV beta endpoint, the absolute-scale cross-check for the calibration. | 2.2 |
-| `noise_rms_per_channel.png` | Per-channel baseline noise RMS across all 208 channels. | 2.2 |
 | `fake_rate_per_channel.png` | Per-channel fake-trigger rate (per µs) feeding the noise-injection model. | 2.2 |
 | `channel_occupancy.png` | Channel occupancy map showing the 183 OK vs 25 dead channels. | 2.2 |
 
@@ -40,6 +38,6 @@ four subfolders below. Each row maps a file to a 1–2 sentence caption and the
 
 | File | Caption | Section |
 |---|---|---|
-| `confusion_random.png` | Prototype (truth-derived 16-feature) confusion matrix, random split — the reference the trigger-level models are compared against. | 3.1 |
+| `confusion_random.png` | Original 16-feature prototype confusion matrix on simulated data without injected detector noise, random 80/20 split. | 3.1 |
 | `confusion_jobholdout.png` | Prototype confusion matrix, job-holdout evaluation. | 3.1 |
 | `feature_importance.png` | Prototype feature importance (gain), including truth-derived hit features (`det_mismatch`, `n_trig`, …). | 3.1 |
