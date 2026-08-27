@@ -137,10 +137,15 @@ mistakes additional triggers for backscatter.
 
 ### 3.2 Sim-vs-real validation
 
-**Coincidence selection** (`both_dets == 1`, mirroring the DAQ proton+electron
-coincidence): **96.95%** of real events pass, versus **25.4% / 33.1% / 39.5% /
-49.9%** for ×0.0 / ×0.5 / ×1.0 / ×2.0 — a large coincidence-rate gap (the simulator
-under-produces two-detector events).
+Among **45,695 real events already recorded by the DAQ as coincidences**, 96.95%
+contain extracted triggers on both detector sides. Applying the same `both_dets == 1`
+requirement to all emulated simulation events retains **25.4% / 33.1% / 39.5% /
+49.9%** for ×0.0 / ×0.5 / ×1.0 / ×2.0. Because the real sample is preselected by
+the DAQ coincidence logic, these fractions diagnose a selection and trigger-emulation
+mismatch rather than directly measuring simulation efficiency. Even with that
+qualification, changing only the rate of independent Poisson triggers does not
+produce event distributions remotely close to real data, so the noise and readout
+model remains a major area for improvement.
 
 **Distribution matching** (mean KS, coincidence-selected):
 
@@ -153,8 +158,9 @@ under-produces two-detector events).
 
 Best scale by mean-KS is ×0.5 (0.1812). The discriminator AUC is **≈0.99 at
 every scale**: real and simulated events are trivially separable from the 22
-features, and increasing the noise scale only worsens the match — the residual is
-structural, not rate-limited.
+features. No tested rate closes the gap, and increasing the scale beyond ×0.5
+worsens the match, showing that the residual is structural rather than a simple
+noise-rate correction.
 
 [FIG: hist_n_trig.png] [FIG: hist_trig_t_span.png] [FIG: hist_trig_E_tot.png]
 [FIG: hist_E_LD_max.png] [FIG: hist_dt_firstUD_firstLD.png]

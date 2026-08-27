@@ -124,7 +124,7 @@
     };
   }
 
-  function histogramRows(doc, scale) {
+  function cdfRows(doc, scale) {
     const rows = [];
     const pairs = [
       { key: "real", label: "Real", total: doc.n_events.real },
@@ -133,31 +133,33 @@
 
     pairs.forEach((pair) => {
       const counts = doc.series[pair.key];
-      counts.forEach((count, index) => {
-        rows.push({
-          value: displayValue(doc.feature, Number(doc.bins[index])),
-          share: count / pair.total,
-          raw_count: count,
-          domain: pair.label
-        });
-      });
+      let cumulative = 0;
       rows.push({
-        value: displayValue(doc.feature, Number(doc.bins[doc.bins.length - 1])),
+        value: displayValue(doc.feature, Number(doc.bins[0])),
         share: 0,
         raw_count: 0,
         domain: pair.label
+      });
+      counts.forEach((count, index) => {
+        cumulative += count;
+        rows.push({
+          value: displayValue(doc.feature, Number(doc.bins[index + 1])),
+          share: cumulative / pair.total,
+          raw_count: cumulative,
+          domain: pair.label
+        });
       });
     });
     return rows;
   }
 
-  function histogramSpec(doc, scale) {
+  function cdfSpec(doc, scale) {
     const simLabel = "Simulation " + SCALE_LABELS[scale];
     return {
       $schema: "https://vega.github.io/schema/vega-lite/v5.json",
       width: "container",
       height: 175,
-      data: { values: histogramRows(doc, scale) },
+      data: { values: cdfRows(doc, scale) },
       encoding: {
         x: {
           field: "value",
@@ -168,23 +170,24 @@
         y: {
           field: "share",
           type: "quantitative",
-          title: "fraction of events / bin",
-          axis: { format: ".0%", tickCount: 4 }
+          title: "cumulative fraction of events",
+          axis: { format: ".0%", tickCount: 4 },
+          scale: { domain: [0, 1] }
         },
         color: {
           field: "domain",
           type: "nominal",
-          scale: { domain: ["Real", simLabel], range: [INK, ACCENT] }
+          scale: { domain: ["Real", simLabel], range: [INK, ACCENT] },
+          legend: { title: null }
         },
         tooltip: [
           { field: "domain", type: "nominal", title: "domain" },
-          { field: "value", type: "quantitative", title: "bin start", format: ".4~g" },
-          { field: "share", type: "quantitative", title: "event share", format: ".2%" },
-          { field: "raw_count", type: "quantitative", title: "raw count", format: ",d" }
+          { field: "value", type: "quantitative", title: "bin edge", format: ".4~g" },
+          { field: "share", type: "quantitative", title: "cumulative event share", format: ".2%" },
+          { field: "raw_count", type: "quantitative", title: "cumulative count", format: ",d" }
         ]
       },
       layer: [
-        { mark: { type: "area", interpolate: "step-after", opacity: 0.12, clip: true } },
         { mark: { type: "line", interpolate: "step-after", strokeWidth: 2, clip: true } }
       ],
       config: baseConfig()
@@ -205,7 +208,7 @@
     badge.classList.toggle("high", Number.isFinite(value) && value >= 0.3);
   }
 
-  async function renderHistograms(scale) {
+  async function renderCDFs(scale) {
     if (typeof window.vegaEmbed !== "function") {
       FEATURES.forEach((feature) => {
         const target = document.getElementById("chart-" + feature);
@@ -220,7 +223,7 @@
       const doc = state.distributions[feature];
       if (!target || !doc) return;
       try {
-        await window.vegaEmbed(target, histogramSpec(doc, scale), {
+        await window.vegaEmbed(target, cdfSpec(doc, scale), {
           actions: false,
           renderer: "svg",
           tooltip: { theme: "light" }
@@ -231,20 +234,20 @@
     }));
   }
 
-  async function drainHistogramQueue() {
+  async function drainCDFQueue() {
     if (state.rendering) return;
     state.rendering = true;
     while (state.pendingScale) {
       const scale = state.pendingScale;
       state.pendingScale = null;
-      await renderHistograms(scale);
+      await renderCDFs(scale);
     }
     state.rendering = false;
   }
 
-  function scheduleHistograms(scale) {
+  function scheduleCDFs(scale) {
     state.pendingScale = scale;
-    drainHistogramQueue();
+    drainCDFQueue();
   }
 
   function updateReadout() {
@@ -292,7 +295,7 @@
     });
     updateReadout();
     renderRateBars();
-    scheduleHistograms(scale);
+    scheduleCDFs(scale);
   }
 
   function scatterRows(xFeature, yFeature) {
@@ -474,7 +477,7 @@
       await loadCoreData();
       updateReadout();
       renderRateBars();
-      scheduleHistograms(state.activeScale);
+      scheduleCDFs(state.activeScale);
       renderImportance();
     } catch (error) {
       console.error(error);

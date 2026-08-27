@@ -9,13 +9,13 @@ the machine-readable artifacts under `sources/Research/xgb_results/`.
 
 | Path | Contents |
 |---|---|
-| `index.html` | The finished editorial paper: full narrative, static research figures, linked noise-scale controls, 10 interactive distributions, phase-space scatter, and discriminator importance. |
+| `index.html` | The finished editorial paper: full narrative, static research figures, linked noise-scale controls, 10 interactive binned-CDF comparisons, phase-space scatter, and discriminator importance. |
 | `paper.css` / `paper.js` | Paper/ink visual system and dependency-free data/chart wiring (Vega-Lite is loaded from CDN). |
 | `narrative/` | The written article. `paper.md` is the paper-style text; `explainer_simple.md` is a plain-language companion for a general audience. |
 | `figures/` | All source PNGs, reorganized into `detector_response/`, `training/`, `sim_vs_real/`, `prototype/`. `figures/README.md` indexes every file with a caption + section. |
 | `data/metrics/` | The raw machine-readable results: M4 `metrics.json` (both noise scales), M5 JSONs (`coincidence`, `discriminator`, `discriminator_importance`, `physics_sanity`), KS/Wasserstein CSVs, the prototype `summary.txt`, and `detector_response_run8908.json`. |
 | `data/key_numbers.json` | One consolidated JSON of every headline number (transcribed programmatically from the metrics files, not by hand). |
-| `data/distributions/` | Per-feature histogram JSONs (`{feature, bins, series:{real, sim_noise…}, coincidence_selected}`) for 10 interactive features, common bin edges, coincidence-selected on both domains. |
+| `data/distributions/` | Per-feature binned-distribution JSONs (`{feature, bins, series:{real, sim_noise…}, coincidence_selected}`) for 10 interactive features, common bin edges, coincidence-selected on both domains. Reconstructed into binned CDF comparisons for the figures. |
 | `data/samples/` | Small CSV samples for scatter plots: 2,000 real events and 2,000 noise1p0 simulated events. |
 | `demo/index.html` | Minimal dependency-free Vega-Lite starter (CDN only) that renders overlaid real-vs-sim histograms and a headline-number table. |
 
@@ -33,10 +33,13 @@ Then open `http://127.0.0.1:8000/`. The root page is the finished paper;
 
 ## Interactive architecture
 
-- The sticky noise-scale control updates all 10 coincidence-selected histograms,
-  their feature-level KS values, and the global mean-KS/AUC readout.
-- `data/distributions/*.json` supplies common bin edges and normalized real/sim
-  series; `data/samples/*.csv` supplies the event-level phase-space view.
+- The sticky noise-scale control updates all 10 coincidence-selected binned-CDF
+  comparisons, their feature-level KS values, and the global mean-KS/AUC readout.
+- `data/distributions/*.json` supplies common quantile-bin edges and real/sim
+  count series, from which the page builds step-CDF comparisons. Because they are
+  reconstructed from common bin counts, the displayed curves are **binned CDF
+  approximations, not raw-event ECDFs**. `data/samples/*.csv` supplies the
+  event-level phase-space view.
 - `data/key_numbers.json` remains the source for headline and validation metrics.
 
 ## Where the data came from (regeneration pointers)

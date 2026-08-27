@@ -269,12 +269,12 @@
 
         <div class="prose reveal">
           <h3><span class="subnum">3.2</span> Sim-vs-real validation</h3>
-          <p>The decisive test is not classifier accuracy on simulation, but whether the trigger representation actually resembles real detector output. Under the same two-detector coincidence selection, <strong>96.95%</strong> of real events pass, compared with only <strong>25.4–49.9%</strong> of simulated events across the noise sweep.</p>
+          <p>The decisive test is not classifier accuracy on simulation, but whether the trigger representation actually resembles real detector output. Among <strong>45,695 real events already recorded by the DAQ as coincidences</strong>, 96.95% contain extracted triggers on both detector sides. Applying the same two-sided trigger requirement to all emulated simulation events retains only <strong>25.4%</strong> without injected noise and <strong>49.9%</strong> at twice the nominal noise rate. Because the real sample is preselected by the DAQ coincidence logic, these fractions diagnose a selection and trigger-emulation mismatch rather than directly measuring simulation efficiency. Even with that qualification, changing only the rate of independent Poisson triggers does not produce event distributions remotely close to real data, so the noise and readout model remains a major area for improvement.</p>
         </div>
 
         <section class="domain-panel reveal" aria-labelledby="coincidence-title">
           <div class="panel-head">
-            <div><span class="eyebrow">Coincidence selection · both_dets = 1</span><h3 id="coincidence-title">Simulation under-produces two-detector events</h3><p>Noise injection raises the simulated coincidence fraction, but even ×2.0 remains almost 47 percentage points below real data.</p></div>
+            <div><span class="eyebrow">Coincidence selection · both_dets = 1</span><h3 id="coincidence-title">Two-detector event fractions differ strongly</h3><p>Noise injection raises the simulated fraction, but even ×2.0 remains almost 47 percentage points below the preselected real coincidence sample.</p></div>
             <span class="scale-stamp" id="scale-stamp">selected · noise ×0.5</span>
           </div>
           <div class="rate-bars" id="rate-bars" aria-label="Coincidence rate comparison"></div>
@@ -299,8 +299,8 @@
 
         <section class="explorer reveal" aria-labelledby="explorer-title">
           <div class="explorer-head">
-            <div><span class="eyebrow">Interactive figure · linked global control</span><h3 id="explorer-title">Explore the domain gap feature by feature</h3><p>Every panel compares normalized coincidence-selected distributions. Use the sticky noise-scale control above; all ten histograms and their KS readouts update together.</p></div>
-            <span class="explorer-note">Real = ink<br>Simulation = red</span>
+            <div><span class="eyebrow">Interactive figure · linked global control</span><h3 id="explorer-title">Explore the domain gap feature by feature</h3><p>Each panel is a cumulative-fraction comparison (a step CDF) of coincidence-selected events: at any x, y is the fraction of selected events at or below x. Closer lines mean better agreement, and the KS value is the largest vertical separation between the two steps. Use the sticky noise-scale control above; all ten CDFs and their KS readouts update together.</p></div>
+            <span class="explorer-note">Real = ink step<br>Simulation = red step</span>
           </div>
           <div class="chart-grid" id="distribution-grid">
             <article class="chart-card" data-feature="n_trig"><div class="chart-card-head"><h4>Trigger multiplicity<small>Total triggers per event</small></h4><span class="chart-badge" id="ks-n_trig">KS —</span></div><div class="chart" id="chart-n_trig"><div class="loading-line">Loading distribution…</div></div></article>
@@ -325,7 +325,7 @@
             </div>
           </div>
           <div class="chart chart-large" id="scatter-chart"><div class="loading-line">Loading event sample…</div></div>
-          <p class="panel-caption">The compact simulation sample is available at noise ×1.0 only; histogram controls do not alter this panel. Opacity reveals density rather than individual event identity.</p>
+          <p class="panel-caption">The compact simulation sample is available at noise ×1.0 only; the CDF controls do not alter this panel. Opacity reveals density rather than individual event identity.</p>
         </section>
 
         <section class="importance-panel reveal" aria-labelledby="importance-title">
@@ -394,12 +394,12 @@
     <footer class="colophon">
       <div>
         <h2>Data provenance</h2>
-        <p>All values trace to <code>REPORT_trigger_level_sim_to_real.md</code> and machine-readable artifacts under <code>data/metrics/</code>. Histograms use common bin edges and identical coincidence selection in both domains.</p>
+        <p>All values trace to <code>REPORT_trigger_level_sim_to_real.md</code> and machine-readable artifacts under <code>data/metrics/</code>. The comparisons are binned CDFs reconstructed from common quantile-bin counts — approximations, not raw-event ECDFs — over events satisfying <code>both_dets = 1</code> in each dataset; the real input was already preselected by the DAQ coincidence event type.</p>
         <p>Real data: a single representative Nab physics run (see §2.1). Simulation: Geant4 hits transformed through the measured trigger-response emulator at four noise scales.</p>
       </div>
       <div>
         <h2>Reproducibility</h2>
-        <p>The page reads local JSON and CSV directly; no metric is embedded inside a proprietary chart bundle. Global controls update ten distributions from <code>data/distributions/</code>.</p>
+        <p>The page reads local JSON and CSV directly; no metric is embedded inside a proprietary chart bundle. Global controls update ten binned-CDF comparisons from <code>data/distributions/</code>.</p>
         <p>Model: XGBoost, 400 trees, depth 6, learning rate 0.05. Evaluation: random 80/20 split and simulation-job holdout.</p>
       </div>
     </footer>
